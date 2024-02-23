@@ -5,7 +5,6 @@
 from flask import Flask, Response, request, jsonify
 from psycopg2.errors import ForeignKeyViolation
 import psycopg2.extras
-from psycopg2 import sql
 
 
 from database import get_db_connection
@@ -20,13 +19,6 @@ def all_clowns():
         cur.execute(
             "SELECT C.clown_id, C.clown_name, S.speciality_name FROM clown as C join speciality as S ON (C.speciality_id = S.speciality_id);")
         return jsonify(cur.fetchall())
-
-
-def clown_checker(id):
-    clown_list = all_clowns()
-
-    if id not in [clown['clown_id'] for clown in clown_list.json]:
-        return {"Message": "Clown not found, invalid ID"}, 404
 
 
 @app.route("/", methods=["GET"])
@@ -47,10 +39,10 @@ def get_clowns() -> Response:
         order = args.get("order", "")
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         if order == "descending" or order == "":
-            query = sql.SQL("SELECT C.clown_id, clown_name, speciality_name, AVG(rating) FROM speciality as S JOIN clown as C ON (S.speciality_id = C.speciality_id) JOIN review as R ON (C.clown_id = R.clown_id) GROUP BY c.clown_id, clown_name, speciality_name ORDER BY AVG(rating) DESC;")
+            query = ("SELECT C.clown_id, clown_name, speciality_name, AVG(rating), COUNT(rating) FROM speciality as S JOIN clown as C ON (S.speciality_id = C.speciality_id) JOIN review as R ON (C.clown_id = R.clown_id) GROUP BY c.clown_id, clown_name, speciality_name ORDER BY AVG(rating) DESC;")
 
         elif order == "ascending":
-            query = sql.SQL("SELECT C.clown_id, clown_name, speciality_name, AVG(rating) FROM speciality as S JOIN clown as C ON (S.speciality_id = C.speciality_id) JOIN review as R ON (C.clown_id = R.clown_id) GROUP BY c.clown_id, clown_name, speciality_name ORDER BY AVG(rating) ASC;")
+            query = ("SELECT C.clown_id, clown_name, speciality_name, AVG(rating), COUNT(rating) FROM speciality as S JOIN clown as C ON (S.speciality_id = C.speciality_id) JOIN review as R ON (C.clown_id = R.clown_id) GROUP BY c.clown_id, clown_name, speciality_name ORDER BY AVG(rating) ASC;")
         else:
             return jsonify({"Message": "Method of ordering not accepted"}), 400
 

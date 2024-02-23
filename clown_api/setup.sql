@@ -28,6 +28,8 @@ CREATE TABLE IF NOT EXISTS review (
 
 -- Seeding the database
 
+VALUES
+
 INSERT INTO speciality
     (speciality_name)
 VALUES
